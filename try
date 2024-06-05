@@ -1,0 +1,32 @@
+app.post('/users/register', async (req, res) => {
+  try {
+    const { email, password, password_confirmation } = req.body;
+
+    // checks if the passwords match
+    if (password !== password_confirmation) {
+      return res.status(400).json({ message: 'Password and password confirmation do not match' });
+    }
+
+    // checks if there is an existing email the database
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email is already registered' });
+    }
+
+    // hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // creating user with unique email
+    const user = new User({ email, password: hashedPassword });
+    await user.save();
+
+    res.status(201).json({ message: 'User registered successfully' });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+app.get('/users', JWTAuth, (req, res) => {
+
+});
